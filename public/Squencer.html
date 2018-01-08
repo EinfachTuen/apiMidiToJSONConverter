@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="css/sequencer.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+<div id="whole page" width="100%">
+    <div id="sequencer-table">
+</div>
+</div>
+<script>
+    function createNoteArray(){
+        let NoteArray = [];
+        for(let i = 0; i<500; i++){
+            NoteArray[i] = createNotes();
+        }
+        return NoteArray;
+    }
+    function createNotes(){
+        let notes = [];
+        for(let i = 0; i<127; i++){
+            notes[i] = false;
+        }
+        return notes;
+    }
+    let notePerTimeArray = createNoteArray();
+    createTable();
+    function createTable(){
+        let time=0;
+        let table = `<table>`;
+        notePerTimeArray.forEach(NoteArray =>{
+            table += `<tr id="${time}"><td>${time}ms</td>`;
+            time += 5;
+            let noteNo = 0;
+            NoteArray.forEach(note =>{
+                noteNo ++;
+                if(!note)table += `<td id="${time}_${noteNo}"><div id="cell_${time}_${noteNo}" onClick="tableClick(${time},${noteNo})" style="height:15px; width:9px;background-color: white"></div>`;
+                else table += `<td id="${time}_${noteNo}"><div id="cell_${time}_${noteNo}" onClick="tableClick(${time},${noteNo})" style="height:15px; width:9px;background-color: black"></div>`;
+                table += `</td>`;
+            });
+            table += `</tr>`;
+        });
+        table += `</table>`;
+        document.getElementById('sequencer-table').innerHTML = table;
+    }
+
+    console.log("notePerTimeArray:",notePerTimeArray);
+    document.getElementById('sequencer-table').style.height = "900px";
+    $("#sequencer-table").scroll(function(){
+        if($(this)[0].scrollHeight - $(this).scrollTop() <= $(this).outerHeight())
+        {
+            console.log("added");
+            notePerTimeArray.push(createNotes());
+            notePerTimeArray.push(createNotes());
+            notePerTimeArray.push(createNotes());
+            createTable();
+        }
+    });
+    function tableClick(time,note) {
+        console.log("time:"+time+" note:"+note);
+        document.getElementById("cell_"+time+"_"+note).style["background-color"] = "black";
+        notePerTimeArray[time/5-1][note-1] = true;
+    }
+
+
+</script>
+
+<script>
+
+</script>
+</body>
+</html>
