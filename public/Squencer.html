@@ -8,68 +8,89 @@
 </head>
 <body>
 <div id="whole page" width="100%">
+    <button id="lastPage" style="display:none" onclick="lastPage()">last Page</button>
+    <button id="nextPage" onclick="nextPage()">next Page</button>
     <div id="sequencer-table">
 </div>
 </div>
 <script>
-    function createNoteArray(){
+    let notes = [];
+    let notePerTimeArray = [];
+    let page = 1;
+    let index = 0;
+    let time = 0;
+    let pageSteps =200;
+
+    for(let i = 0; i<127; i++){
+        notes[i] = false;
+    }
+    $.post( "/loadToText", function( data ) {
+        console.log(data);
+        notePerTimeArray = createNoteArray(data);
+        createTable(notePerTimeArray);
+    });
+    function createNoteArray(data){
         let NoteArray = [];
-        for(let i = 0; i<500; i++){
-            NoteArray[i] = createNotes();
-        }
+        let actualTime = 0;
+        data.forEach(event =>{
+            actualTime += event.deltaTime;
+            NoteArray.push({time:actualTime, notes:createNotes(event)});
+        });
         return NoteArray;
     }
-    function createNotes(){
-        let notes = [];
-        for(let i = 0; i<127; i++){
-            notes[i] = false;
+    function createNotes(event){
+        if(event.subtype==="noteOn"){
+            notes[event.noteNumber] = true;
         }
-        return notes;
+        if(event.subtype==="noteOff"){
+            notes[event.noteNumber] = false;
+        }
+        return JSON.parse(JSON.stringify(notes));
     }
-    let notePerTimeArray = createNoteArray();
-    createTable();
-    function createTable(){
-        let time=0;
+    function createTable(notePerTimeArray){
         let table = `<table>`;
-        notePerTimeArray.forEach(NoteArray =>{
+        let BreakException = {};
+        for(index; index < (pageSteps * page) && index < notePerTimeArray.length; index++){
+            let NoteArray = notePerTimeArray[index];
+            time = NoteArray.time;
             table += `<tr id="${time}"><td>${time}ms</td>`;
-            time += 5;
+            index++;
             let noteNo = 0;
-            NoteArray.forEach(note =>{
-                noteNo ++;
-                if(!note)table += `<td id="${time}_${noteNo}"><div id="cell_${time}_${noteNo}" onClick="tableClick(${time},${noteNo})" style="height:15px; width:9px;background-color: white"></div>`;
-                else table += `<td id="${time}_${noteNo}"><div id="cell_${time}_${noteNo}" onClick="tableClick(${time},${noteNo})" style="height:15px; width:9px;background-color: black"></div>`;
+            NoteArray.notes.forEach(note => {
+                noteNo++;
+                if (!note) table += `<td id="${time}_${noteNo}"><div id="cell_${index}_${noteNo}" onClick="tableClick(${index},${noteNo})" style="height:15px; width:9px;background-color: white"></div>`;
+                else table += `<td id="${time}_${noteNo}"><div id="cell_${index}_${noteNo}" onClick="tableClick(${index},${noteNo})" style="height:15px; width:9px;background-color: black"></div>`;
                 table += `</td>`;
             });
             table += `</tr>`;
-        });
+        }
+        index = index - pageSteps;
+
+        if(index > 0) document.getElementById("lastPage").style.display="inline";
+        else document.getElementById("lastPage").style.display="none";
+
         table += `</table>`;
         document.getElementById('sequencer-table').innerHTML = table;
     }
-
-    console.log("notePerTimeArray:",notePerTimeArray);
     document.getElementById('sequencer-table').style.height = "900px";
-    $("#sequencer-table").scroll(function(){
-        if($(this)[0].scrollHeight - $(this).scrollTop() <= $(this).outerHeight())
-        {
-            console.log("added");
-            notePerTimeArray.push(createNotes());
-            notePerTimeArray.push(createNotes());
-            notePerTimeArray.push(createNotes());
-            createTable();
-        }
-    });
-    function tableClick(time,note) {
-        console.log("time:"+time+" note:"+note);
-        document.getElementById("cell_"+time+"_"+note).style["background-color"] = "black";
-        notePerTimeArray[time/5-1][note-1] = true;
+
+    function tableClick(index,note) {
+        console.log("index:"+index+" note:"+note);
+        document.getElementById("cell_"+index+"_"+note).style["background-color"] = "black";
+        notePerTimeArray[index][note-1] = true;
+    }
+    function nextPage(){
+        page++;
+        index = index+pageSteps;
+        createTable(notePerTimeArray);
+    }
+    function lastPage(){
+        page--;
+        index = index - pageSteps;
+        createTable(notePerTimeArray);
     }
 
-
 </script>
 
-<script>
-
-</script>
 </body>
 </html>

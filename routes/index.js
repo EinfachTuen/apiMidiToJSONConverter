@@ -17,10 +17,29 @@ router.post('/toText', function(req, res) {
         let jsonSong = midiConverter.midiToJson(midiSong);
         console.log(jsonSong.tracks[1]);
         res.send(jsonSong);
-        console.log("jsonSong",jsonSong)
+       /* console.log("jsonSong",jsonSong)
         let createdSong = midiConverter.jsonToMidi(jsonSong);
-        fs.writeFileSync('example.mid', createdSong, 'binary');
+        fs.writeFileSync('example.mid', createdSong, 'binary');*/
     });
+});
+router.post('/loadToText', function(req, res) {
+    let midiSong = fs.readFileSync('music/midi.mid', 'binary');
+    let jsonSong = midiConverter.midiToJson(midiSong);
+    //console.log(jsonSong.tracks[1]);
+    let tracks = [];
+    jsonSong.tracks[1].forEach(event => {
+        if(event.subtype === "noteOn" || event.subtype === "noteOff"){
+            tracks.push(event);
+            console.log("event",event);
+        }
+    });
+    res.send(tracks);
+});
+router.get('/loadToText', function(req, res) {
+    let midiSong = fs.readFileSync('music/midi.mid', 'binary');
+    let jsonSong = midiConverter.midiToJson(midiSong);
+    console.log(jsonSong.tracks[1]);
+    res.render('index', { jsonSong: tracks });
 });
 router.post('/toMid', function(req, res) {
     //console.log("data",req.data);
