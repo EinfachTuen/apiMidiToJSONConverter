@@ -37,7 +37,6 @@ router.post('/loadToText', function(req, res) {
             tracks.push(event);
            // console.log("event",event);
         }
-
         index++;
     });
     res.send(tracks);
