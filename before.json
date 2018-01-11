@@ -1,0 +1,122 @@
+{
+  "header": {
+    "formatType": 1,
+    "trackCount": 17,
+    "ticksPerBeat": 480
+  },
+  "tracks": [
+    [
+      {
+        "deltaTime": 0,
+        "type": "meta",
+        "subtype": "trackName",
+        "text": "untitled"
+      },
+      {
+        "deltaTime": 0,
+        "type": "meta",
+        "subtype": "smpteOffset",
+        "frameRate": 30,
+        "hour": 0,
+        "min": 0,
+        "sec": 3,
+        "frame": 0,
+        "subframe": 0
+      },
+      {
+        "deltaTime": 0,
+        "type": "meta",
+        "subtype": "timeSignature",
+        "numerator": 3,
+        "denominator": 4,
+        "metronome": 24,
+        "thirtyseconds": 8
+      },
+      {
+        "deltaTime": 0,
+        "type": "meta",
+        "subtype": "keySignature",
+        "key": 0,
+        "scale": 0
+      },
+      {
+        "deltaTime": 0,
+        "type": "meta",
+        "subtype": "setTempo",
+        "microsecondsPerBeat": 240000
+      },
+      {
+        "deltaTime": 1200,
+        "type": "meta",
+        "subtype": "setTempo",
+        "microsecondsPerBeat": 600000
+      },
+      {
+        "deltaTime": 240,
+        "type": "meta",
+        "subtype": "marker",
+        "text": "A"
+      },
+      {
+        "deltaTime": 31680,
+        "type": "meta",
+        "subtype": "marker",
+        "text": "A'"
+      },
+      {
+        "deltaTime": 31680,
+        "type": "meta",
+        "subtype": "marker",
+        "text": "B"
+      },
+      {
+        "deltaTime": 57120,
+        "type": "meta",
+        "subtype": "setTempo",
+        "microsecondsPerBeat": 1200000
+      },
+      {
+        "deltaTime": 0,
+        "type": "meta",
+        "subtype": "endOfTrack"
+      }
+    ],
+    [
+      {
+        "deltaTime": 0,
+        "type": "meta",
+        "subtype": "unknown",
+        "data": "\u0000"
+      },
+      {
+        "deltaTime": 0,
+        "type": "meta",
+        "subtype": "trackName",
+        "text": "Solo Flute"
+      },
+      {
+        "deltaTime": 0,
+        "channel": 0,
+        "type": "channel",
+        "subtype": "programChange",
+        "programNumber": 73
+      },
+      {
+        "deltaTime": 0,
+        "channel": 0,
+        "type": "channel",
+        "subtype": "controller",
+        "controllerType": 7,
+        "value": 100
+      },
+      {
+        "deltaTime": 0,
+        "channel": 0,
+        "type": "channel",
+        "subtype": "controller",
+        "controllerType": 10,
+        "value": 64
+      }
+    ]
+  ]
+}

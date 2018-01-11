@@ -5,11 +5,18 @@
     <title>Title</title>
     <link rel="stylesheet" href="css/sequencer.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <!-- polyfill -->
+    <script src="midijs/midi.js" type="text/javascript"></script>
 </head>
 <body>
 <div id="whole page" width="100%">
     <button id="lastPage" style="display:none" onclick="lastPage()">last Page</button>
     <button id="nextPage" onclick="nextPage()">next Page</button>
+    <button id="convertToEvents" onclick="convertToEvents()">convert</button>
+    <button id="play" style="display:none" onclick="playMIDI()">play Midi</button>
+    <button id="stop" style="display:none" onclick="stopMIDI()">stop Midi</button>
+
     <div id="sequencer-table">
 </div>
 </div>
@@ -19,7 +26,7 @@
     let page = 1;
     let index = 0;
     let time = 0;
-    let pageSteps =200;
+    let pageSteps =100;
 
     for(let i = 0; i<127; i++){
         notes[i] = false;
@@ -32,10 +39,18 @@
     function createNoteArray(data){
         let NoteArray = [];
         let actualTime = 0;
+        let firstrun = true;
         data.forEach(event =>{
-            actualTime += event.deltaTime;
-            NoteArray.push({time:actualTime, notes:createNotes(event)});
+            if(firstrun){
+                firstrun =false;
+                NoteArray.push({time:actualTime, notes:createNotes(event)});
+            }
+            else{
+                actualTime += event.deltaTime;
+                NoteArray.push({time:actualTime, notes:createNotes(event)});
+            }
         });
+        console.log("NoteArray",NoteArray);
         return NoteArray;
     }
     function createNotes(event){
@@ -49,12 +64,13 @@
     }
     function createTable(notePerTimeArray){
         let table = `<table>`;
-        let BreakException = {};
-        for(index; index < (pageSteps * page) && index < notePerTimeArray.length; index++){
+        for(index; index < (pageSteps * page); index++){
+            if(index >= notePerTimeArray.length){
+                notePerTimeArray.push({time:notePerTimeArray[notePerTimeArray.length -1].time+120, notes:createNotes({})});
+            }
             let NoteArray = notePerTimeArray[index];
             time = NoteArray.time;
             table += `<tr id="${time}"><td>${time}ms</td>`;
-            index++;
             let noteNo = 0;
             NoteArray.notes.forEach(note => {
                 noteNo++;
@@ -77,7 +93,10 @@
     function tableClick(index,note) {
         console.log("index:"+index+" note:"+note);
         document.getElementById("cell_"+index+"_"+note).style["background-color"] = "black";
-        notePerTimeArray[index][note-1] = true;
+        console.log("before click",notePerTimeArray);
+        console.log("before click",notePerTimeArray[index].notes[note-1]);
+        notePerTimeArray[index].notes[note-1] = true;
+        console.log("after click",notePerTimeArray[index].notes[note-1]);
     }
     function nextPage(){
         page++;
@@ -89,7 +108,68 @@
         index = index - pageSteps;
         createTable(notePerTimeArray);
     }
-
+    function convertToEvents(){
+        let timeBefore = 0;
+        let events = [];
+        for(let i = 0; i< notePerTimeArray.length; i++){
+            if(i === 0){
+                for(let note = 0; note < notePerTimeArray[i].notes.length; note++){
+                    if(notePerTimeArray[i].notes[note]) {
+                        let event = {
+                            channel: 0,
+                            deltaTime: notePerTimeArray[i].time - timeBefore,
+                            noteNumber: note,
+                            subtype: "noteOn",
+                            type: "channel",
+                            velocity: 100
+                        };
+                        events.push(event);
+                    }
+                }
+            }
+            else{
+                for(let note = 0; note < notePerTimeArray[i].notes.length; note++){
+                    if(notePerTimeArray[i].notes[note] === true &&  notePerTimeArray[i-1].notes[note] === false) {
+                        let event = {
+                            channel: 0,
+                            deltaTime: notePerTimeArray[i].time - timeBefore,
+                            noteNumber: note,
+                            subtype: "noteOn",
+                            type: "channel",
+                            velocity: 100
+                        };
+                        events.push(event);
+                    }
+                    if(notePerTimeArray[i].notes[note] === false &&  notePerTimeArray[i-1].notes[note] === true) {
+                        let event = {
+                            channel: 0,
+                            deltaTime: notePerTimeArray[i].time - timeBefore,
+                            noteNumber: note,
+                            subtype: "noteOff",
+                            type: "channel",
+                            velocity: 0
+                        };
+                        events.push(event);
+                    }
+                }
+            }
+            timeBefore = notePerTimeArray[i].time;
+        }
+        console.log("events:",events);
+        console.log("notePerTimeArray",notePerTimeArray);
+        $.post( "/toMidSpecial",{midAsJson:JSON.stringify(events), name: "test1"}, function( data ) {
+            console.log("data",data);
+            document.getElementById('play').style.display = "block";
+            document.getElementById('stop').style.display = "block";
+            MIDIjs.play('/'+data+'.mid');
+        });
+    }
+    function playMIDI(){
+        MIDIjs.play('/midi.mid');
+    }
+    function stopMIDI(){
+        MIDIjs.stop('/midi.mid');
+    }
 </script>
 
 </body>
