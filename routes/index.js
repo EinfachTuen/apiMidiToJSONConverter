@@ -3,30 +3,26 @@ var fs = require('fs');
 var midiConverter = require('midi-converter');
 var router = express.Router();
 var fileUpload = require('express-fileupload');
+let MidiConvert = require('midiconvert');
+
 router.use(fileUpload());
 router.post('/toText', function(req, res) {
     if (!req.files)
         return res.status(400).send('No files were uploaded.');
-    // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
     console.log(req.files)
     let sampleFile = req.files.file;
     // Use the mv() method to place the file somewhere on your server
     sampleFile.mv('new.mid', function(err) {
         if(err) return res.status(500).send(err);
-        let midiSong = fs.readFileSync('music/midi.mid', 'binary');
+        let midiSong = fs.readFileSync('new.mid', 'binary');
         let jsonSong = midiConverter.midiToJson(midiSong);
         console.log(jsonSong.tracks[1]);
         res.send(jsonSong);
-       /* console.log("jsonSong",jsonSong)
-        let createdSong = midiConverter.jsonToMidi(jsonSong);
-        fs.writeFileSync('example.mid', createdSong, 'binary');*/
     });
 });
 router.post('/loadToText', function(req, res) {
     let midiSong = fs.readFileSync('music/midi.mid', 'binary');
     let jsonSong = midiConverter.midiToJson(midiSong);
-    var createdSong = midiConverter.jsonToMidi(jsonSong);
-    fs.writeFileSync('miste.mid', createdSong, 'binary');
     fs.writeFileSync('jsonSong.json', JSON.stringify(jsonSong, null, 2));
     //console.log(jsonSong.tracks[1]);
     let tracks = [];
@@ -94,23 +90,26 @@ router.post('/toMidSpecial', function(req, res) {
 });
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-    console.log(req.query);
-    console.log("got get request");
-
-    /*var midiSong = fs.readFileSync('music/midi.mid', 'binary');
-    var jsonSong = midiConverter.midiToJson(midiSong);
-    console.log(jsonSong.tracks[1]);
-    var createdSong = midiConverter.jsonToMidi(jsonSong);
-    fs.writeFileSync('example.mid', createdSong, 'binary');
-});
-router.post('/', function(req, res, next) {
-    console.log(req);
-    /*var midiSong = fs.readFileSync('music/midi.mid', 'binary');
-    var jsonSong = midiConverter.midiToJson(midiSong);
-    console.log(jsonSong.tracks[1]);
-    var createdSong = midiConverter.jsonToMidi(jsonSong);
-    fs.writeFileSync('example.mid', createdSong, 'binary');*/
+router.post('/toMidNewConvert', function(req, res, next) {
+    //console.log("data",req.data);
+    console.log("body 1234:",req.body);
+    if (!req.body.midAsJson || !req.body.name )
+        return res.status(400).send('No files were uploaded.');
+    let incoming =JSON.parse(req.body.midAsJson);
+    let newFile = MidiConvert.create();
+    newFile.track().patch(32);
+    let lastTime = 0;
+    incoming.forEach(event=>{
+        let duration = 0.06000000000000005;
+        lastTime = lastTime+duration;
+        if(event.subtype === "noteOn"){
+            newFile.tracks[0].note(event.noteNumber, lastTime,duration);
+        }
+    });
+    fs.writeFileSync('incoming.json', JSON.stringify(incoming, null, 2));
+    fs.writeFileSync('newFile.json', JSON.stringify(newFile, null, 2));
+    fs.writeFileSync("public/"+req.body.name+".mid", newFile.encode(), "binary");
+    res.send(req.body.name);
 });
 
 module.exports = router;

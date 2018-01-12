@@ -27,6 +27,7 @@
     let index = 0;
     let time = 0;
     let pageSteps =100;
+    let midiName ="";
 
     for(let i = 0; i<127; i++){
         notes[i] = false;
@@ -157,18 +158,18 @@
         }
         console.log("events:",events);
         console.log("notePerTimeArray",notePerTimeArray);
-        $.post( "/toMidSpecial",{midAsJson:JSON.stringify(events), name: "test1"}, function( data ) {
+        $.post( "/toMidNewConvert",{midAsJson:JSON.stringify(events), name: "test1"}, function( data ) {
             console.log("data",data);
             document.getElementById('play').style.display = "block";
             document.getElementById('stop').style.display = "block";
-            MIDIjs.play('/'+data+'.mid');
+            midiName = data;
         });
     }
     function playMIDI(){
-        MIDIjs.play('/midi.mid');
+        MIDIjs.play('/'+midiName+'.mid');
     }
     function stopMIDI(){
-        MIDIjs.stop('/midi.mid');
+        MIDIjs.stop('/'+midiName+'.mid');
     }
 </script>
 

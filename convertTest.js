@@ -9,11 +9,9 @@ fs.readFile("music/midi.mid", "binary", function(err, midiBlob) {
         fs.writeFileSync("output.json", JSON.stringify(midi,null,2));
         var newFile = MidiConvert.create();
     // add a track
-        newFile.track()
-        // select an instrument by its MIDI patch number
-            .patch(32)
-            // chain note events: note, time, duration
-            .note(60, 0, 2);
+        newFile.track().patch(32);
+        newFile.tracks[0].note(60, 0, 0.06000000000000005);
+        newFile.tracks[0].note(60, 2, 0.06000000000000005);
 
 // write the output
        // fs.writeFileSync("output.mid", midi.encode(), "binary")

@@ -9,19 +9,26 @@
     "name": ""
   },
   "startTime": 0,
-  "duration": 2,
+  "duration": 2.06,
   "tracks": [
     {
       "startTime": 0,
-      "duration": 2,
-      "length": 1,
+      "duration": 2.06,
+      "length": 2,
       "notes": [
         {
           "name": "C4",
           "midi": 60,
           "time": 0,
           "velocity": 1,
-          "duration": 2
+          "duration": 0.06000000000000005
+        },
+        {
+          "name": "C4",
+          "midi": 60,
+          "time": 2,
+          "velocity": 1,
+          "duration": 0.06000000000000005
         }
       ],
       "controlChanges": {},
