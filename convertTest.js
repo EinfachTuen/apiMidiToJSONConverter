@@ -1,7 +1,7 @@
 let fs = require('fs')
 let MidiConvert = require('midiconvert');
 
-fs.readFile("music/midi.mid", "binary", function(err, midiBlob) {
+fs.readFile("music/hitlights.mid", "binary", function(err, midiBlob) {
     if (!err) {
         var midi = MidiConvert.parse(midiBlob);
         console.log(midi);

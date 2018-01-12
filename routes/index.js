@@ -97,14 +97,18 @@ router.post('/toMidNewConvert', function(req, res, next) {
         return res.status(400).send('No files were uploaded.');
     let incoming =JSON.parse(req.body.midAsJson);
     let newFile = MidiConvert.create();
-    newFile.track().patch(32);
-    let lastTime = 0;
+    newFile.track().patch(62);
+    let lastTime = 0.0;
+    let deltaTime = 0.1;
     incoming.forEach(event=>{
-        let duration = 0.06000000000000005;
-        lastTime = lastTime+duration;
+        console.log("lastTime",lastTime);
+        console.log("Subtype",event.subtype);
         if(event.subtype === "noteOn"){
-            newFile.tracks[0].note(event.noteNumber, lastTime,duration);
+            newFile.tracks[0].note(event.noteNumber,lastTime,deltaTime);
+            //Take it out later if also 0 lines should be created
+            lastTime = lastTime+deltaTime;
         }
+
     });
     fs.writeFileSync('incoming.json', JSON.stringify(incoming, null, 2));
     fs.writeFileSync('newFile.json', JSON.stringify(newFile, null, 2));
