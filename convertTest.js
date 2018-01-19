@@ -2,8 +2,8 @@ let fs = require('fs')
 let MidiConvert = require('midiconvert');
 
 fs.readFile("music/hitlights.mid", "binary", function(err, midiBlob) {
-    if (!err) {
-        var midi = MidiConvert.parse(midiBlob);
+        if (!err) {
+            var midi = MidiConvert.parse(midiBlob);
         console.log(midi);
         fs.writeFileSync("output.mid", midi.encode(), "binary");
         fs.writeFileSync("output.json", JSON.stringify(midi,null,2));

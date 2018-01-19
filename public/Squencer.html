@@ -32,11 +32,12 @@
     for(let i = 0; i<127; i++){
         notes[i] = false;
     }
-    $.post( "/loadToText", function( data ) {
+    createTable([{time:0, notes:createNotes({})}]);
+    /*$.post( "/loadToText", function( data ) {
         console.log(data);
         notePerTimeArray = createNoteArray(data);
         createTable(notePerTimeArray);
-    });
+    });*/
     function createNoteArray(data){
         let NoteArray = [];
         let actualTime = 0;

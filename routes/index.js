@@ -99,7 +99,7 @@ router.post('/toMidNewConvert', function(req, res, next) {
     let newFile = MidiConvert.create();
     newFile.track().patch(62);
     let lastTime = 0.0;
-    let deltaTime = 0.1;
+    let deltaTime = 0.5;
     incoming.forEach(event=>{
         console.log("lastTime",lastTime);
         console.log("Subtype",event.subtype);
@@ -116,4 +116,48 @@ router.post('/toMidNewConvert', function(req, res, next) {
     res.send(req.body.name);
 });
 
+router.post('/withDurationToMidi', function(req, res, next) {
+    let resolution = 0.01;
+    let allTracks = [];
+    fs.readFile("music/hitlights.mid", "binary", function (err, midiBlob) {
+        if (!err) {
+            let midi = MidiConvert.parse(midiBlob);
+            //console.log(midi);
+            let resultArray = [];
+            let emptyNotes = new Array(127).fill(0);
+            let trackNo = 0;
+            midi.tracks.forEach(track => {
+                let time = 0;
+                let maxI = track.notes.length;
+                let trackContent = [];
+                let amount = 0;
+                if (maxI > 0) {
+                    let trackMaxTime = track.notes[maxI - 1].time + track.notes[maxI - 1].duration;
+                    let stepsAmount = trackMaxTime / resolution;
+                    for (let i = 0; i < stepsAmount; i++) {
+                        trackContent.push(JSON.parse(JSON.stringify(emptyNotes)));
+                    }
+                   track.notes.forEach(note => {
+                        let startPoint = note.time / 0.05;
+                        let startNo = Math.floor(startPoint);
+                        console.log("startNo",startNo);
+                        let endNo = Math.floor(startPoint + note.duration / 0.05);
+                        console.log("endNo",endNo);
+                        for (let i = startNo; i < endNo; i++) {
+
+                            trackContent[i][note.midi] = 1;
+                            console.log(i);
+                        }
+                    });
+                    allTracks.push(trackContent);
+                    //console.log("stepsAmounts:",Math.ceil(stepsAmount));
+                }
+                //console.log("amount", amount)
+                trackNo++;
+            });
+            res.send(JSON.stringify(allTracks));
+        }
+    });
+
+});
 module.exports = router;
