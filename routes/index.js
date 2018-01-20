@@ -138,13 +138,12 @@ router.post('/withDurationToMidi', function(req, res, next) {
                         trackContent.push(JSON.parse(JSON.stringify(emptyNotes)));
                     }
                    track.notes.forEach(note => {
-                        let startPoint = note.time / 0.05;
+                        let startPoint = note.time / 0.01;
                         let startNo = Math.floor(startPoint);
                         console.log("startNo",startNo);
-                        let endNo = Math.floor(startPoint + note.duration / 0.05);
+                        let endNo = Math.floor(startPoint + note.duration / 0.01);
                         console.log("endNo",endNo);
                         for (let i = startNo; i < endNo; i++) {
-
                             trackContent[i][note.midi] = 1;
                             console.log(i);
                         }
@@ -158,6 +157,82 @@ router.post('/withDurationToMidi', function(req, res, next) {
             res.send(JSON.stringify(allTracks));
         }
     });
+});
+router.post('/DurationHotEncoded', function(req, res, next) {
+    let resolution = 0.01;
+    let allTracks = [];
+    let allDurations = [];
+    fs.readFile("music/hitlights.mid", "binary", function (err, midiBlob) {
+        if (!err) {
 
+            let midi = MidiConvert.parse(midiBlob);
+            fs.writeFileSync('midiNew.json', JSON.stringify(midi, null, 2));
+            let emptyNotes = new Array(127).fill(0);
+            let trackNo = 0;
+
+            midi.tracks.forEach(track => {
+                let trackNotes = [];
+                let durationArray = [];
+                track.notes.forEach(note =>{
+                    let notesArray = JSON.parse(JSON.stringify(emptyNotes));
+                    notesArray[note.midi] = 1;
+                    let durationIndex = 0;
+                    let newDuration = true;
+                    let actualDuration = note.duration.toFixed(3);
+                    for(let i = 0; i < durationArray.length; i++){
+                        if(durationArray[i].time === actualDuration) {
+                            durationArray[i].amount++;
+                            newDuration = false;
+                            durationIndex = i;
+                        }
+                    }
+                    if(newDuration){
+                        let newElement = {
+                            time: actualDuration,
+                            amount: 1
+                        };
+                        durationIndex = durationArray.length;
+                        durationArray.push(newElement);
+                    }
+                    let newElement = {
+                        notes: notesArray,
+                        duration: durationIndex
+                    };
+                    trackNotes.push(newElement);
+                });
+                console.log(durationArray);
+                allDurations.push(durationArray);
+                allTracks.push(trackNotes);
+            });
+
+            fs.writeFileSync('printDurationArrays.json', JSON.stringify(allTracks, null, 2));
+            res.send(JSON.stringify({track: allTracks[1], durations:allDurations[1]}));
+        }
+    })
+});
+router.post('/DurationAsFloat', function(req, res, next) {
+    let allTracks = [];
+    fs.readFile("music/midi.mid", "binary", function (err, midiBlob) {
+        if (!err) {
+            let midi = MidiConvert.parse(midiBlob);
+            fs.writeFileSync('midiNew.json', JSON.stringify(midi, null, 2));
+            let emptyNotes = new Array(128).fill(0);
+            let trackNo = 0;
+            midi.tracks.forEach(track => {
+                let trackNotes = [];
+                track.notes.forEach(note =>{
+                    let notesArray = JSON.parse(JSON.stringify(emptyNotes));
+                    notesArray[note.midi] = 1;
+                    let actualDuration = note.duration.toFixed(3);
+                    notesArray.push(actualDuration);
+                    console.log(notesArray);
+                    trackNotes.push(notesArray);
+                });
+                allTracks.push(trackNotes);
+            });
+            fs.writeFileSync('tracksResult.json', JSON.stringify(allTracks, null, 2));
+            res.send(JSON.stringify(allTracks[1]));
+        }
+    })
 });
 module.exports = router;
