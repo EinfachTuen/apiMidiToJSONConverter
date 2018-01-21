@@ -243,13 +243,12 @@ router.post('/convertArrayToJSON', function(req, res) {
     if (!req.body.midAsJson || !req.body.name )
         return res.status(400).send('No files were uploaded.');
     // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
-   // console.log("req.body.midAsJson",req.body.midAsJson);
+    console.log("req.body.midAsJson",req.body.midAsJson);
     let incEventArray = JSON.parse(req.body.midAsJson);
-    let resultEventArray = [];
     let actualTime = 0;
     // add a track
     var newFile = MidiConvert.create();
-    newFile.track().patch(30);
+    newFile.track().patch(73);
     incEventArray.forEach(resultVekor =>{
         let newEvent = {
             "name": "oem",
@@ -261,42 +260,57 @@ router.post('/convertArrayToJSON', function(req, res) {
         for(let i = 0; i <resultVekor.length-1; i++){
             if(resultVekor[i] > 0.5){
                 newEvent.midi = i;
+                newEvent.duration = parseFloat(resultVekor[128].toFixed(2));
+                newEvent.time = parseFloat(actualTime.toFixed(2));
+                newFile.tracks[0].note(newEvent.midi, newEvent.time, newEvent.duration);
+                actualTime += newEvent.duration;
             }
         }
-
-        newEvent.duration = parseFloat(resultVekor[128].toFixed(2));
-        newEvent.time = parseFloat(actualTime.toFixed(2));
-        newFile.tracks[0].note(newEvent.midi-1, newEvent.time, newEvent.duration);
-
-        actualTime += newEvent.duration;
-        if(newEvent.duration > 0) resultEventArray.push(newEvent);
+        if(newEvent.midi === 0){
+            actualTime += parseFloat(resultVekor[128].toFixed(2));
+        }
     });
     fs.writeFileSync("self.json", JSON.stringify(newFile,null,2));
     fs.writeFileSync("public/"+req.body.name+".mid", newFile.encode(), "binary");
     res.send(req.body.name);
 });
 router.post('/CombinedDurationAsFloat', function(req, res, next) {
+   try{ let TrackArray = tracks('./music/bachOneChannel');
+        notes = getChannelNotes(TrackArray,73)
+        let trackNo = 0;
+        let trackNotes =[];
+        trackNotes = makeLSTMInputVektorOutOfTracks(notes);
+        console.log(trackNotes);
+        fs.writeFileSync('trackNotes.json', JSON.stringify(trackNotes, null, 2));
+        res.send(JSON.stringify(trackNotes));
+   }catch(error){
+        console.log(error);
+   }
+});
+
+function makeLSTMInputVektorOutOfTracks(notes){
     let trackNotes = [];
-    let notes = tracks('./music/bachOneChannel',73)
+    let time = 0;
     let emptyNotes = new Array(128).fill(0);
-    let trackNo = 0;
     notes.forEach(note =>{
         let notesArray = JSON.parse(JSON.stringify(emptyNotes));
         notesArray[note.midi] = 1;
         let actualDuration = note.duration.toFixed(3);
+        if(time < (note.time+0.004)){
+            let zeroNotesArray = JSON.parse(JSON.stringify(emptyNotes));
+            let zeroDuration = note.time - time;
+            zeroNotesArray.push(zeroDuration);
+            console.log("pushed Zero", zeroDuration);
+            trackNotes.push(notesArray);
+        }
+        time += actualDuration;
         notesArray.push(actualDuration);
-        console.log(notesArray);
+        // console.log(notesArray);
         trackNotes.push(notesArray);
     });
-    fs.writeFileSync('trackNotes.json', JSON.stringify(trackNotes, null, 2));
-    res.send(JSON.stringify(trackNotes));
-
-
-});
-
-console.log();
-
-function tracks(folder, channel){
+    return trackNotes;
+}
+function tracks(folder){
     const testFolder = folder;
     let result = fs.readdirSync(testFolder);
     let TrackArray = [];
@@ -313,14 +327,14 @@ function tracks(folder, channel){
             }
         });
     });
-    return getChannelNotes(TrackArray,channel);
+    return TrackArray;
 }
 function getChannelNotes(TrackArray, channel){
     let noteArray = [];
     TrackArray.forEach(track => {
         if(track.channel === channel){
             track.notes.forEach(note =>{
-                console.log(note);
+               // console.log(note);
                 noteArray.push(note);
             });
         }
