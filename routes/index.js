@@ -269,7 +269,7 @@ router.post('/convertArrayToJSON', function(req, res) {
         newFile.tracks[0].note(newEvent.midi-1, newEvent.time, newEvent.duration);
 
         actualTime += newEvent.duration;
-        resultEventArray.push(newEvent);
+        if(newEvent.duration > 0) resultEventArray.push(newEvent);
     });
     fs.writeFileSync("self.json", JSON.stringify(newFile,null,2));
     fs.writeFileSync("public/"+req.body.name+".mid", newFile.encode(), "binary");
