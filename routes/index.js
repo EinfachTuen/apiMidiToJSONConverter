@@ -235,4 +235,97 @@ router.post('/DurationAsFloat', function(req, res, next) {
         }
     })
 });
+router.post('/convertArrayToJSON', function(req, res) {
+    //console.log("data",req.data);
+    //console.log("body 1234:",req.body);
+   // console.log("req.body",req.body);
+
+    if (!req.body.midAsJson || !req.body.name )
+        return res.status(400).send('No files were uploaded.');
+    // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
+   // console.log("req.body.midAsJson",req.body.midAsJson);
+    let incEventArray = JSON.parse(req.body.midAsJson);
+    let resultEventArray = [];
+    let actualTime = 0;
+    // add a track
+    var newFile = MidiConvert.create();
+    newFile.track().patch(30);
+    incEventArray.forEach(resultVekor =>{
+        let newEvent = {
+            "name": "oem",
+            "midi": 0,
+            "time": 0,
+            "velocity": 0,
+            "duration": 0
+        };
+        for(let i = 0; i <resultVekor.length-1; i++){
+            if(resultVekor[i] > 0.5){
+                newEvent.midi = i;
+            }
+        }
+
+        newEvent.duration = parseFloat(resultVekor[128].toFixed(2));
+        newEvent.time = parseFloat(actualTime.toFixed(2));
+        newFile.tracks[0].note(newEvent.midi-1, newEvent.time, newEvent.duration);
+
+        actualTime += newEvent.duration;
+        resultEventArray.push(newEvent);
+    });
+    fs.writeFileSync("self.json", JSON.stringify(newFile,null,2));
+    fs.writeFileSync("public/"+req.body.name+".mid", newFile.encode(), "binary");
+    res.send(req.body.name);
+});
+router.post('/CombinedDurationAsFloat', function(req, res, next) {
+    let trackNotes = [];
+    let notes = tracks('./music/bachOneChannel',73)
+    let emptyNotes = new Array(128).fill(0);
+    let trackNo = 0;
+    notes.forEach(note =>{
+        let notesArray = JSON.parse(JSON.stringify(emptyNotes));
+        notesArray[note.midi] = 1;
+        let actualDuration = note.duration.toFixed(3);
+        notesArray.push(actualDuration);
+        console.log(notesArray);
+        trackNotes.push(notesArray);
+    });
+    fs.writeFileSync('trackNotes.json', JSON.stringify(trackNotes, null, 2));
+    res.send(JSON.stringify(trackNotes));
+
+
+});
+
+console.log();
+
+function tracks(folder, channel){
+    const testFolder = folder;
+    let result = fs.readdirSync(testFolder);
+    let TrackArray = [];
+    result.forEach(fileName => {
+        let midiSong = fs.readFileSync(testFolder+'/'+fileName, 'binary');
+        let jsonSong = MidiConvert.parse(midiSong);
+        jsonSong.tracks.forEach(track => {
+            if(track.notes.length > 0){
+                let track_Element = {
+                    channel: track.instrumentNumber,
+                    notes: track.notes
+                };
+                TrackArray.push(track_Element);
+            }
+        });
+    });
+    return getChannelNotes(TrackArray,channel);
+}
+function getChannelNotes(TrackArray, channel){
+    let noteArray = [];
+    TrackArray.forEach(track => {
+        if(track.channel === channel){
+            track.notes.forEach(note =>{
+                console.log(note);
+                noteArray.push(note);
+            });
+        }
+    });
+    return noteArray
+}
+
 module.exports = router;
