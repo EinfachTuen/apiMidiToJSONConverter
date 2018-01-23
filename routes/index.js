@@ -248,7 +248,7 @@ router.post('/convertArrayToJSON', function(req, res) {
     let actualTime = 0;
     // add a track
     var newFile = MidiConvert.create();
-    newFile.track().patch(73);
+    newFile.track().patch(34);
     incEventArray.forEach(resultVekor =>{
         let newEvent = {
             "name": "oem",
@@ -275,19 +275,57 @@ router.post('/convertArrayToJSON', function(req, res) {
     res.send(req.body.name);
 });
 router.post('/CombinedDurationAsFloat', function(req, res, next) {
-   try{ let TrackArray = tracks('./music/bachOneChannel');
-        notes = getChannelNotes(TrackArray,73)
-        let trackNo = 0;
-        let trackNotes =[];
-        trackNotes = makeLSTMInputVektorOutOfTracks(notes);
-        console.log(trackNotes);
-        fs.writeFileSync('trackNotes.json', JSON.stringify(trackNotes, null, 2));
-        res.send(JSON.stringify(trackNotes));
+   try{
+        let TrackArray = tracks('./music/metallica');
+        let channelArray = getChannels(TrackArray);
+        channelArray = getOnlyChannelsWithOverXAmount(channelArray,10);
+       // console.log("channelArray",channelArray);
+        let noteResult =[];
+        channelArray.forEach(channel =>{
+            let JSONNotes = getChannelNotes(TrackArray,channel.name);
+            let noteElement = {
+                notes: makeLSTMInputVektorOutOfTracks(JSONNotes),
+                channel: channel.name
+            };
+            noteResult.push(noteElement);
+        });
+        console.log(noteResult);
+
+        //console.log(trackNotes);
+        fs.writeFileSync('trackNotes.json', JSON.stringify(noteResult, null, 2));
+        res.send(JSON.stringify(noteResult));
    }catch(error){
         console.log(error);
    }
 });
-
+function getOnlyChannelsWithOverXAmount(channelArray,minAmount){
+    let outputChannelArray = []
+    channelArray.forEach(channel =>{
+        if(channel.name > 0 && channel.amount > 10){
+            outputChannelArray.push(channel);
+        }
+    });
+    return outputChannelArray;
+}
+function getChannels(TrackArray){
+    let channelArray = [];
+    TrackArray.forEach(track => {
+        let channelFound= false;
+        channelArray.forEach(channel =>{
+            if(track.channel === channel.name){
+                channel.amount++;
+                channelFound = true;
+            }
+        });
+        if(!channelFound){
+            channelArray.push({
+                name: track.channel,
+                amount: 1,
+            })
+        }
+    });
+    return channelArray;
+}
 function makeLSTMInputVektorOutOfTracks(notes){
     let trackNotes = [];
     let time = 0;
