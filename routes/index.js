@@ -276,7 +276,7 @@ router.post('/convertArrayToJSON', function(req, res) {
 });
 router.post('/CombinedDurationAsFloat', function(req, res, next) {
    try{
-        let TrackArray = tracks('./music/metallica');
+        let TrackArray = tracks('./music/bachOneChannel');
         let channelArray = getChannels(TrackArray);
         channelArray = getOnlyChannelsWithOverXAmount(channelArray,10);
        // console.log("channelArray",channelArray);
