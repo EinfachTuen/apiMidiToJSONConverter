@@ -275,13 +275,14 @@ router.post('/convertArrayToJSON', function(req, res) {
     res.send(req.body.name);
 });
 router.post('/CombinedDurationAsFloat', function(req, res, next) {
-    let folderName = "bachOneChannel";
+    let folderName = "randomMidi";
     try{
         let TrackArray = tracks('./music/'+folderName);
         let channelArray = getChannels(TrackArray);
         channelArray = getOnlyChannelsWithOverXAmount(channelArray,10);
-       // console.log("channelArray",channelArray);
+        console.log("channelArray",channelArray);
         let noteResult =[];
+       // console.log(TrackArray);
         channelArray.forEach(channel =>{
             let JSONNotes = getChannelNotes(TrackArray,channel.name);
             let noteElement = {
@@ -290,7 +291,7 @@ router.post('/CombinedDurationAsFloat', function(req, res, next) {
             };
             noteResult.push(noteElement);
         });
-        console.log(noteResult);
+
 
         //console.log(trackNotes);
         fs.writeFileSync('trackNotes.json', JSON.stringify(noteResult, null, 2));
@@ -302,7 +303,7 @@ router.post('/CombinedDurationAsFloat', function(req, res, next) {
 function getOnlyChannelsWithOverXAmount(channelArray,minAmount){
     let outputChannelArray = []
     channelArray.forEach(channel =>{
-        if(channel.name > 0 && channel.amount > 1){
+        if(channel.name > -1 && channel.amount > 1){
             outputChannelArray.push(channel);
         }
     });
