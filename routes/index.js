@@ -6,7 +6,7 @@ var fileUpload = require('express-fileupload');
 let MidiConvert = require('midiconvert');
 
 router.use(fileUpload());
-router.post('/toText', function(req, res) {
+/*router.post('/toText', function(req, res) {
     if (!req.files)
         return res.status(400).send('No files were uploaded.');
     console.log(req.files)
@@ -88,8 +88,6 @@ router.post('/toMidSpecial', function(req, res) {
     fs.writeFileSync('public/'+req.body.name+'.mid', createdSong, 'binary');
     res.send(req.body.name);
 });
-
-/* GET home page. */
 router.post('/toMidNewConvert', function(req, res, next) {
     //console.log("data",req.data);
     console.log("body 1234:",req.body);
@@ -115,7 +113,6 @@ router.post('/toMidNewConvert', function(req, res, next) {
     fs.writeFileSync("public/"+req.body.name+".mid", newFile.encode(), "binary");
     res.send(req.body.name);
 });
-
 router.post('/withDurationToMidi', function(req, res, next) {
     let resolution = 0.01;
     let allTracks = [];
@@ -235,6 +232,7 @@ router.post('/DurationAsFloat', function(req, res, next) {
         }
     })
 });
+*/
 router.post('/convertArrayToJSON', function(req, res) {
     //console.log("data",req.data);
     //console.log("body 1234:",req.body);
