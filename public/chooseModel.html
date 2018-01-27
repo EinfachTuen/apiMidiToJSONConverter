@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+<select id="authorSelect" onchange="updateIntrument(this);"></select>
+</select>
+<select id="instrument"></select>
+</select>
+<button onClick="createMidi()">createMidi</button>
+<div id="result"></div>
+<script>
+    let folder ={};
+    function createMidi(){
+        let instrument = document.getElementById("instrument").value;
+        let authors = document.getElementById("authorSelect").value;
+        $.get( "http://127.0.0.1:5000/getPrediction?folder="+authors+"&channel="+instrument, function( data ) {
+            console.log("getResult", data);
+            document.getElementById("result").innerHTML = data;
+        });
+    }
+    function updateIntrument(optionValue){
+        document.getElementById("instrument").innerHTML = "";
+        updateChannels(folder[optionValue.value]);
+    }
+    function createOption(content,optionName){
+        let option = document.createElement("option");
+        option.text = content;
+        option.value = content;
+        let select = document.getElementById(optionName);
+        select.appendChild(option);
+    }
+    function updateChannels(channel){
+        console.log("folderInc",channel);
+        let containingNumbers = [];
+        channel.forEach(model =>{
+            let modelName = model.split("_")[0];
+            if(!(containingNumbers.indexOf(modelName)>-1)) {
+                console.log(model.split("_")[0]);
+                createOption(modelName, "instrument");
+                containingNumbers.push(modelName);
+            }
+        })
+    }
+
+$.get( "http://127.0.0.1:5000/getModels", function( data ) {
+    console.log(data);
+    folder = data;
+    Object.keys(data).forEach(key=>{
+        createOption(key,"authorSelect");
+    });
+    updateChannels(data[Object.keys(data)[0]]);
+});
+
+</script>
+
+</body>
+</html>
