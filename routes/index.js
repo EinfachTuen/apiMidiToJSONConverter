@@ -11,9 +11,9 @@ router.use(fileUpload());
  * @http_request_param_(req.body.midAsJson): This is a 2D notes to timestep Array which will be converted to midi
  * @http_request_param_(req.body.name): This is the name of the midi file that get generated
  * @http_request_channel_(req.body.channel): TheNumber of the models channel
- * convert incoming array
+ * convert incoming array To Midi
  */
-router.post('/convertArrayToJSON', function(req, res) {
+router.post('/convertArrayToMidi', function(req, res) {
     if (!req.body.midAsJson || !req.body.name || !req.body.channel)
         return res.status(400).send('No files were uploaded.');
     // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
@@ -46,12 +46,18 @@ router.post('/convertArrayToJSON', function(req, res) {
             }
         }
     });
-    fs.writeFileSync("self.json", JSON.stringify(newFile,null,2));
+    fs.writeFileSync("./log/self.json", JSON.stringify(newFile,null,2));
     fs.writeFileSync("public/"+req.body.name+".mid", newFile.encode(), "binary");
     res.send(req.body.name);
 });
-router.post('/CombinedDurationAsFloat', function(req, res, next) {
-    let folderName = "bachOneChannel";
+/**
+ * music/ FolderName to Convert to Midi after request (in Music Folder)
+ */
+let folderName = "bachOneChannel";
+/**
+ * This method convert all Files inside the FolderName above to midi
+ */
+router.post('/getJSOnOfMidiFolder', function(req, res) {
     try{
         let TrackArray = tracks('./music/'+folderName);
         let channelArray = getChannels(TrackArray);
@@ -67,9 +73,6 @@ router.post('/CombinedDurationAsFloat', function(req, res, next) {
             noteResult.push(noteElement);
         });
         console.log(noteResult);
-
-        //console.log(trackNotes);
-        //fs.writeFileSync('trackNotes.json', JSON.stringify(noteResult, null, 2));
         res.send(JSON.stringify({folder:folderName, notes:noteResult}));
    }catch(error){
         console.log(error);
@@ -157,7 +160,7 @@ function getChannelNotes(TrackArray, channel){
 }
 
 
-
+/*
 function LSTMInputVektor(tracksWithNotes){
     let allNotes = [];
     let time = 0;
@@ -219,6 +222,6 @@ router.post('/withAnyThingToInputArray', function(req, res, next) {
         console.log(error);
     }
 });
-
+*/
 
 module.exports = router;
